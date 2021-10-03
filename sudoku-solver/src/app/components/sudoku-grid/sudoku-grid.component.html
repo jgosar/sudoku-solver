@@ -6,7 +6,7 @@
       </ng-container>
       <ng-container *ngIf="!cell.value">
         <ng-container *ngFor="let possibility of range(10);">
-          <div class="sus-sudoku-cell__possibility" *ngIf="cell.possibilities.includes(possibility)" (click)="setCellValue(rowIndex, colIndex, possibility)">
+          <div class="sus-sudoku-cell__possibility" *ngIf="cell.possibilities.includes(possibility)" (click)="possibilityClicked(rowIndex, colIndex, possibility)">
             {{possibility}}
           </div>
           <div class="sus-sudoku-cell__possibility" *ngIf="possibility>0 && !cell.possibilities.includes(possibility)">
