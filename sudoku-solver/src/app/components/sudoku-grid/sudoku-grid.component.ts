@@ -12,6 +12,8 @@ export class SudokuGridComponent {
 
   sudokuData: SudokuCellState[][];
 
+  range = range;
+
   ngOnInit(){
     this.sudokuData = this.initSudokuGrid(9);
   }
