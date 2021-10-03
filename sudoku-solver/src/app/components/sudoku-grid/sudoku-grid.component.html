@@ -1,0 +1,14 @@
+<div class="sus-sudoku-grid__grid">
+  <div class="sus-sudoku-grid__row" *ngFor="let row of sudokuData; let rowIndex = index">
+    <div class="sus-sudoku-grid__cell" *ngFor="let cell of row; let colIndex = index">
+      <ng-container *ngIf="cell.value">
+        {{cell.value}}
+      </ng-container>
+      <ng-container *ngIf="!cell.value">
+        <div class="sus-sudoku-cell__possibility" *ngFor="let possibility of cell.possibilities" (click)="setCellValue(rowIndex, colIndex, possibility)">
+          {{possibility}}
+        </div>
+      </ng-container>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,59 @@
+:host {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .sus-sudoku-grid__grid {
+    --grid-size: min(90vh, 90vw);
+    --wide-border: 3px;
+    --narrow-border: 1px;
+    width: var(--grid-size);
+    height: var(--grid-size);
+    border: var(--wide-border) solid black;
+    display: flex;
+    flex-direction: column;
+
+    .sus-sudoku-grid__row {
+      flex: 1 1 10px;
+      display: flex;
+      flex-direction: row;
+      border-bottom: var(--narrow-border) solid black;
+
+      &:nth-child(3n) {
+        border-bottom: var(--wide-border) solid black;
+      }
+
+      &:last-child {
+        border-bottom: none;
+      }
+
+      .sus-sudoku-grid__cell {
+        flex: 1 1 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-wrap: wrap;
+        border-right: var(--narrow-border) solid black;
+        font-size: calc(var(--grid-size) / 12);
+
+        &:nth-child(3n) {
+          border-right: var(--wide-border) solid black;
+        }
+
+        &:last-child {
+          border-right: none;
+        }
+
+        .sus-sudoku-cell__possibility {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 33%;
+          height: 33%;
+          color: #cccccc;
+          font-size: calc(var(--grid-size) / 36);
+        }
+      }
+    }
+  }
+}
