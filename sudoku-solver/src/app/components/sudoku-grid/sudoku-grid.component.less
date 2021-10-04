@@ -67,8 +67,7 @@
         flex-wrap: wrap;
         border-right: var(--narrow-border) solid black;
         font-size: calc(
-          var(--grid-size) * 0.75 /
-            (var(--square-height) * var(--square-height))
+          var(--grid-size) * 0.75 / (var(--square-height) * var(--square-width))
         );
 
         &:last-child {
@@ -86,7 +85,7 @@
             var(--grid-size) * 0.75 /
               (
                 var(--square-height) * var(--square-height) *
-                  var(--square-height)
+                  var(--square-width)
               )
           );
         }
