@@ -14,8 +14,8 @@ export class SudokuGridComponent {
   sudokuData: SudokuCellState[][];
 
   range = range;
-  SQUARE_WIDTH = 3;
-  SQUARE_HEIGHT = 3;
+  SQUARE_WIDTH = 2;
+  SQUARE_HEIGHT = 2;
 
   algorithmLevels: ((sudokuData: SudokuCellState[][]) => SudokuActionResult)[] = [
     this.setCellValuesIfOnly1Possibility.bind(this),

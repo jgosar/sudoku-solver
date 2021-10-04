@@ -13,15 +13,47 @@
     display: flex;
     flex-direction: column;
 
+    &[data-square-height="2"] {
+      .sus-sudoku-grid__row {
+        &:nth-child(2n) {
+          border-bottom: var(--wide-border) solid black;
+        }
+      }
+    }
+
+    &[data-square-height="3"] {
+      .sus-sudoku-grid__row {
+        &:nth-child(3n) {
+          border-bottom: var(--wide-border) solid black;
+        }
+      }
+    }
+
+    &[data-square-width="2"] {
+      .sus-sudoku-grid__row {
+        .sus-sudoku-grid__cell {
+          &:nth-child(2n) {
+            border-right: var(--wide-border) solid black;
+          }
+        }
+      }
+    }
+
+    &[data-square-width="3"] {
+      .sus-sudoku-grid__row {
+        .sus-sudoku-grid__cell {
+          &:nth-child(3n) {
+            border-right: var(--wide-border) solid black;
+          }
+        }
+      }
+    }
+
     .sus-sudoku-grid__row {
       flex: 1 1 10px;
       display: flex;
       flex-direction: row;
       border-bottom: var(--narrow-border) solid black;
-
-      &:nth-child(3n) {
-        border-bottom: var(--wide-border) solid black;
-      }
 
       &:last-child {
         border-bottom: none;
@@ -34,11 +66,10 @@
         justify-content: center;
         flex-wrap: wrap;
         border-right: var(--narrow-border) solid black;
-        font-size: calc(var(--grid-size) / 12);
-
-        &:nth-child(3n) {
-          border-right: var(--wide-border) solid black;
-        }
+        font-size: calc(
+          var(--grid-size) * 0.75 /
+            (var(--square-height) * var(--square-height))
+        );
 
         &:last-child {
           border-right: none;
@@ -48,10 +79,16 @@
           display: flex;
           align-items: center;
           justify-content: center;
-          width: 33%;
-          height: 33%;
+          width: calc(100% / var(--square-width));
+          height: calc(100% / var(--square-height));
           color: #cccccc;
-          font-size: calc(var(--grid-size) / 36);
+          font-size: calc(
+            var(--grid-size) * 0.75 /
+              (
+                var(--square-height) * var(--square-height) *
+                  var(--square-height)
+              )
+          );
         }
       }
     }
