@@ -120,7 +120,7 @@ export class SudokuGridComponent {
     let valuePossibleIn1Place: number|undefined;
 
     for(let rowNum=0;rowNum<sudokuData.length;rowNum++){
-      distinctCellsGroup = this.getCellsInRow(sudokuData, rowNum);
+      distinctCellsGroup = this.getBlankCellsInRow(sudokuData, rowNum);
       valuePossibleIn1Place = this.getValuePossibleIn1Place(distinctCellsGroup);
       if(isDefined(valuePossibleIn1Place)){
         break;
@@ -129,7 +129,7 @@ export class SudokuGridComponent {
 
     if(!isDefined(valuePossibleIn1Place)){
       for(let colNum=0;colNum<sudokuData[0].length;colNum++){
-        distinctCellsGroup = this.getCellsInColumn(sudokuData, colNum);
+        distinctCellsGroup = this.getBlankCellsInColumn(sudokuData, colNum);
         valuePossibleIn1Place = this.getValuePossibleIn1Place(distinctCellsGroup);
         if(isDefined(valuePossibleIn1Place)){
           break;
@@ -140,7 +140,7 @@ export class SudokuGridComponent {
     if(!isDefined(valuePossibleIn1Place)){
       outer: for(let rowNum=0;rowNum<sudokuData.length;rowNum+=this.SQUARE_HEIGHT){
         for(let colNum=0;colNum<sudokuData[rowNum].length;colNum+=this.SQUARE_WIDTH){
-          distinctCellsGroup = this.getCellsInSquare(sudokuData, rowNum, colNum);
+          distinctCellsGroup = this.getBlankCellsInSquare(sudokuData, rowNum, colNum);
           valuePossibleIn1Place = this.getValuePossibleIn1Place(distinctCellsGroup);
           if(isDefined(valuePossibleIn1Place)){
             break outer;
@@ -167,20 +167,20 @@ export class SudokuGridComponent {
     return isDefined(value)?parseInt(value):undefined;
   }
 
-  private getCellsInRow(sudokuData: SudokuCellState[][], rowNum: number): SudokuCellState[] {
-    return sudokuData[rowNum];
+  private getBlankCellsInRow(sudokuData: SudokuCellState[][], rowNum: number): SudokuCellState[] {
+    return sudokuData[rowNum].filter(cell=>!cell.value);
   }
 
-  private getCellsInColumn(sudokuData: SudokuCellState[][], colNum: number): SudokuCellState[] {
-    return sudokuData.map(row=>row[colNum]);
+  private getBlankCellsInColumn(sudokuData: SudokuCellState[][], colNum: number): SudokuCellState[] {
+    return sudokuData.map(row=>row[colNum]).filter(cell=>!cell.value);
   }
 
-  private getCellsInSquare(sudokuData: SudokuCellState[][], startRowNum: number, startColNum: number): SudokuCellState[] {
+  private getBlankCellsInSquare(sudokuData: SudokuCellState[][], startRowNum: number, startColNum: number): SudokuCellState[] {
     return sudokuData
-      .filter((row, rowNum)=>rowNum=>startRowNum && rowNum<startRowNum+this.SQUARE_HEIGHT)
+      .filter((row, rowNum)=>rowNum>=startRowNum && rowNum<startRowNum+this.SQUARE_HEIGHT)
       .map(row=>row
-        .filter((col, colNum)=>colNum=>startColNum && colNum<startColNum+this.SQUARE_WIDTH)
-      ).flat();
+        .filter((col, colNum)=>colNum>=startColNum && colNum<startColNum+this.SQUARE_WIDTH)
+      ).flat().filter(cell=>!cell.value);
   }
 
   private summarizePossibilities(cells: SudokuCellState[]): { [key: number]: number } {
