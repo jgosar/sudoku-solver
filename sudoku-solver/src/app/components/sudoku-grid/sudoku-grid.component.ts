@@ -20,7 +20,8 @@ export class SudokuGridComponent {
   algorithmLevels: ((sudokuData: SudokuCellState[][]) => SudokuActionResult)[] = [
     this.setCellValuesIfOnly1Possibility.bind(this),
     this.setCellValuesIfPossibleIn1Place.bind(this),
-    this.reductioAdAbsurdum.bind(this)
+    this.reductioAdAbsurdum.bind(this),
+    this.removeAbsurdPossibilities.bind(this)
   ];
 
   ngOnInit(){
@@ -190,43 +191,87 @@ export class SudokuGridComponent {
   private addPossibilitiesToSum(possibilitySum: { [key: number]: number }, cell: SudokuCellState): { [key: number]: number }{
     return cell.possibilities.reduce(this.addPossibilityToSum, possibilitySum)
   }
-
+  
   private addPossibilityToSum(possibilitySum: { [key: number]: number }, possibility: number): { [key: number]: number }{
+    possibilitySum[possibility] = (possibilitySum[possibility]||0)+1
+    return possibilitySum;
+  }
+
+  /*private addPossibilityToSum(possibilitySum: { [key: number]: number }, possibility: number): { [key: number]: number }{
     return {
       ...possibilitySum,
       [possibility]: (possibilitySum[possibility]||0)+1
     };
-  }
+  }*/
 
   // Algorithm level 3
   private reductioAdAbsurdum(sudokuData: SudokuCellState[][]): SudokuActionResult{
     const cellsWith2PossibleValues = sudokuData.flat().filter(cell=>cell.possibilities.length===2);
     for(let cell of cellsWith2PossibleValues){
-      let sudokuDataOption1: SudokuCellState[][] = this.setCellValue(sudokuData, cell.row, cell.col, cell.possibilities[0]);
-      sudokuDataOption1 = this.tryToSolve(sudokuDataOption1, 1);
+      const correctness0: boolean = this.isPossibilityCorrect(sudokuData, cell, cell.possibilities[0], 1);
+      const correctness1: boolean = this.isPossibilityCorrect(sudokuData, cell, cell.possibilities[1], 1);
 
-      const option1IsAbsurd: boolean = sudokuDataOption1.flat().some(cell=>!isDefined(cell.value) && cell.possibilities.length===0);
-
-      if(option1IsAbsurd){
-        return {
-          sudokuData: this.setCellValue(sudokuData, cell.row, cell.col, cell.possibilities[1]),
-          anyChanges: true
-        };
-      }
-
-      let sudokuDataOption2: SudokuCellState[][] = this.setCellValue(sudokuData, cell.row, cell.col, cell.possibilities[1]);
-      sudokuDataOption2 = this.tryToSolve(sudokuDataOption2, 1);
-      const option2IsAbsurd: boolean = sudokuDataOption2.flat().some(cell=>!isDefined(cell.value) && cell.possibilities.length===0);
-
-      if(option2IsAbsurd){
+      if(/*correctness0 === true || */correctness1 === false){
         return {
           sudokuData: this.setCellValue(sudokuData, cell.row, cell.col, cell.possibilities[0]),
+          anyChanges: true
+        };
+      } else if(correctness0 === false/* || correctness1 === true*/){
+        return {
+          sudokuData: this.setCellValue(sudokuData, cell.row, cell.col, cell.possibilities[1]),
           anyChanges: true
         };
       }
     }
 
     return {sudokuData, anyChanges: false};
+  }
+
+  private isPossibilityCorrect(sudokuData: SudokuCellState[][], cell: SudokuCellState, possibleValue: number, maxAlgorithmLevel: number): boolean|undefined {
+    let dataAfterChange: SudokuCellState[][] = this.setCellValue(sudokuData, cell.row, cell.col, possibleValue);
+    dataAfterChange = this.tryToSolve(dataAfterChange, maxAlgorithmLevel);
+
+    if(dataAfterChange.flat().some(cell => !isDefined(cell.value) && cell.possibilities.length === 0)){
+      return false;
+    } else if(dataAfterChange.flat().every(cell => isDefined(cell.value))){
+      return true;
+    }
+
+    return undefined;
+  }
+
+  // Algorithm level 4
+  private removeAbsurdPossibilities(sudokuData: SudokuCellState[][]): SudokuActionResult{
+    const cellsWithMultiplePossibleValues = sudokuData.flat().filter(cell=>cell.possibilities.length>2).sort(this.compareByPossibilityCount);
+    for(let cellToCheck of cellsWithMultiplePossibleValues){
+      for(let possibleValue of cellToCheck.possibilities){
+        const isCorrect: boolean = this.isPossibilityCorrect(sudokuData, cellToCheck, possibleValue, 2);
+
+        /*if(isCorrect===true){
+          return {
+            sudokuData: this.setCellValue(sudokuData, cellToCheck.row, cellToCheck.col, possibleValue),
+            anyChanges: true
+          };
+        } else */if(isCorrect===false){
+          return {
+            sudokuData: sudokuData.map((row)=>row.map((cell)=>{
+              if(cell.row===cellToCheck.row && cell.col === cellToCheck.col){
+                return this.removePossibility(cell, possibleValue);
+              } else{
+                return cell;
+              }
+            })),
+            anyChanges: true
+          };
+        }
+      }
+    }
+
+    return {sudokuData, anyChanges: false};
+  }
+
+  private compareByPossibilityCount(cell1: SudokuCellState, cell2: SudokuCellState): number {
+    return cell1.possibilities.length-cell2.possibilities.length;
   }
 
 }
