@@ -1,10 +1,11 @@
 import { isDefined } from "../helpers/common.helpers";
-import { setCellValue } from "../helpers/sudoku.helpers";
+import { removeCellPossibility, setCellValue } from "../helpers/sudoku.helpers";
 import { SudokuStoreState } from "../services/sudoku-store.state";
 import { SudokuActionResult } from "../types/sudoku-action-result";
 import { SudokuCellState } from "../types/sudoku-cell-state";
+import { SudokuChangeAction } from "../types/sudoku-change-action";
 
-const algorithmLevels: ((sudokuState: SudokuStoreState) => SudokuActionResult)[] = [
+const algorithmLevels: ((sudokuState: SudokuStoreState) => SudokuChangeAction[])[] = [
     setCellValuesIfOnly1Possibility,
     setCellValuesIfPossibleIn1Place,
     reductioAdAbsurdum,
@@ -18,13 +19,15 @@ export function tryToSolve(sudokuState: SudokuStoreState, maxAlgorithmLevel?: nu
 
   while(tryAgain){
     tryAgain = false;
-    const actionResult: SudokuActionResult = algorithmLevels[algorithmLevel](tmpSudokuState);
+    const suggestedActions: SudokuChangeAction[] = algorithmLevels[algorithmLevel](tmpSudokuState);
 
-    if(actionResult.anyChanges){
+    if(suggestedActions.length>0){
       // Ok, we found a number, start checks again from first algorithm level
       tryAgain = true;
       algorithmLevel = 0;
-      tmpSudokuState = {...tmpSudokuState, sudokuData: actionResult.sudokuData};
+      
+      tmpSudokuState = suggestedActions.reduce((state, action)=>({...state, sudokuData: executeAction(state, action)}), tmpSudokuState);
+
     } else if((!isDefined(maxAlgorithmLevel) || algorithmLevel<maxAlgorithmLevel) && algorithmLevels.length>algorithmLevel+1){
       // We didn't find a number, but maybe things will be better with the next algorithm level.
       tryAgain = true;
@@ -36,6 +39,14 @@ export function tryToSolve(sudokuState: SudokuStoreState, maxAlgorithmLevel?: nu
   return tmpSudokuState.sudokuData;
 }
 
+function executeAction(sudokuState: SudokuStoreState, action: SudokuChangeAction): SudokuCellState[][]{
+  if(action.setValue){
+    return setCellValue(sudokuState, action.rowIndex, action.colIndex, action.setValue);
+  } else{
+    return removeCellPossibility(sudokuState, action.rowIndex, action.colIndex, action.removePossibility);
+  }
+}
+
 function removePossibility(cellState: SudokuCellState, possibility: number): SudokuCellState{
   return {
     ...cellState,
@@ -44,20 +55,21 @@ function removePossibility(cellState: SudokuCellState, possibility: number): Sud
 }
 
 // Algorithm level 1
-function setCellValuesIfOnly1Possibility(sudokuState: SudokuStoreState): SudokuActionResult{
+function setCellValuesIfOnly1Possibility(sudokuState: SudokuStoreState): SudokuChangeAction[]{
   const cellWith1PossibleValue: SudokuCellState = sudokuState.sudokuData.flat().find(cell=>cell.possibilities.length===1);
   if(isDefined(cellWith1PossibleValue)){
-    return {
-      sudokuData: setCellValue(sudokuState, cellWith1PossibleValue.row, cellWith1PossibleValue.col, cellWith1PossibleValue.possibilities[0]),
-      anyChanges: true
-    };
+    return [{
+      rowIndex: cellWith1PossibleValue.row,
+      colIndex: cellWith1PossibleValue.col,
+      setValue: cellWith1PossibleValue.possibilities[0],
+    }];
   }
 
-  return {sudokuData: sudokuState.sudokuData, anyChanges: false};
+  return [];
 }
 
 // Algorithm level 2
-function setCellValuesIfPossibleIn1Place(sudokuState: SudokuStoreState): SudokuActionResult{
+function setCellValuesIfPossibleIn1Place(sudokuState: SudokuStoreState): SudokuChangeAction[]{
   let distinctCellsGroup: SudokuCellState[];
   let valuePossibleIn1Place: number|undefined;
 
@@ -93,13 +105,14 @@ function setCellValuesIfPossibleIn1Place(sudokuState: SudokuStoreState): SudokuA
 
   if(isDefined(valuePossibleIn1Place)){
     const cell: SudokuCellState = distinctCellsGroup.find(cell=>cell.possibilities.includes(valuePossibleIn1Place));
-    return {
-      sudokuData: setCellValue(sudokuState, cell.row, cell.col, valuePossibleIn1Place),
-      anyChanges: true
-    };
+    return [{
+      rowIndex: cell.row,
+      colIndex: cell.col,
+      setValue: valuePossibleIn1Place,
+    }];
   }
 
-  return {sudokuData: sudokuState.sudokuData, anyChanges: false};
+  return [];
 }
 
 function getValuePossibleIn1Place(distinctCellsGroup: SudokuCellState[]): number|undefined {
@@ -146,26 +159,28 @@ function addPossibilityToSum(possibilitySum: { [key: number]: number }, possibil
 }*/
 
 // Algorithm level 3
-function reductioAdAbsurdum(sudokuState: SudokuStoreState): SudokuActionResult{
+function reductioAdAbsurdum(sudokuState: SudokuStoreState): SudokuChangeAction[]{
   const cellsWith2PossibleValues = sudokuState.sudokuData.flat().filter(cell=>cell.possibilities.length===2);
   for(let cell of cellsWith2PossibleValues){
     const correctness0: boolean = isPossibilityCorrect(sudokuState, cell, cell.possibilities[0], 1);
     const correctness1: boolean = isPossibilityCorrect(sudokuState, cell, cell.possibilities[1], 1);
 
     if(/*correctness0 === true || */correctness1 === false){
-      return {
-        sudokuData: setCellValue(sudokuState, cell.row, cell.col, cell.possibilities[0]),
-        anyChanges: true
-      };
+      return [{
+        rowIndex: cell.row,
+        colIndex: cell.col,
+        setValue: cell.possibilities[0],
+      }];
     } else if(correctness0 === false/* || correctness1 === true*/){
-      return {
-        sudokuData: setCellValue(sudokuState, cell.row, cell.col, cell.possibilities[1]),
-        anyChanges: true
-      };
+      return [{
+        rowIndex: cell.row,
+        colIndex: cell.col,
+        setValue: cell.possibilities[1],
+      }];
     }
   }
 
-  return {sudokuData: sudokuState.sudokuData, anyChanges: false};
+  return [];
 }
 
 function isPossibilityCorrect(sudokuState: SudokuStoreState, cell: SudokuCellState, possibleValue: number, maxAlgorithmLevel: number): boolean|undefined {
@@ -182,33 +197,29 @@ function isPossibilityCorrect(sudokuState: SudokuStoreState, cell: SudokuCellSta
 }
 
 // Algorithm level 4
-function removeAbsurdPossibilities(sudokuState: SudokuStoreState): SudokuActionResult{
+function removeAbsurdPossibilities(sudokuState: SudokuStoreState): SudokuChangeAction[]{
   const cellsWithMultiplePossibleValues = sudokuState.sudokuData.flat().filter(cell=>cell.possibilities.length>2).sort(compareByPossibilityCount);
   for(let cellToCheck of cellsWithMultiplePossibleValues){
     for(let possibleValue of cellToCheck.possibilities){
       const isCorrect: boolean = isPossibilityCorrect(sudokuState, cellToCheck, possibleValue, 2);
 
       /*if(isCorrect===true){
-        return {
-          sudokuData: setCellValue(sudokuData, cellToCheck.row, cellToCheck.col, possibleValue),
-          anyChanges: true
-        };
+        return [{
+          rowIndex: cellToCheck.row,
+          colIndex: cellToCheck.col,
+          value: possibleValue,
+        }];
       } else */if(isCorrect===false){
-        return {
-          sudokuData: sudokuState.sudokuData.map((row)=>row.map((cell)=>{
-            if(cell.row===cellToCheck.row && cell.col === cellToCheck.col){
-              return removePossibility(cell, possibleValue);
-            } else{
-              return cell;
-            }
-          })),
-          anyChanges: true
-        };
+        return [{
+          rowIndex: cellToCheck.row,
+          colIndex: cellToCheck.col,
+          removePossibility: possibleValue,
+        }];
       }
     }
   }
 
-  return {sudokuData: sudokuState.sudokuData, anyChanges: false};
+  return [];
 }
 
 function compareByPossibilityCount(cell1: SudokuCellState, cell2: SudokuCellState): number {

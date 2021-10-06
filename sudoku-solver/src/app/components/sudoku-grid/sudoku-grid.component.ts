@@ -1,7 +1,7 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { range } from 'src/app/helpers/array.helpers';
 import { SudokuCellState } from 'src/app/types/sudoku-cell-state';
-import { SudokuPosibillityClickEvent } from 'src/app/types/sudoku-possibility-click-event';
+import { SudokuChangeAction } from 'src/app/types/sudoku-change-action';
 
 @Component({
   selector: 'sus-sudoku-grid',
@@ -16,13 +16,13 @@ export class SudokuGridComponent {
   @Input()
   sudokuData: SudokuCellState[][];
   @Output()
-  possibilityClick: EventEmitter<SudokuPosibillityClickEvent> = new EventEmitter<SudokuPosibillityClickEvent>();
+  possibilityClick: EventEmitter<SudokuChangeAction> = new EventEmitter<SudokuChangeAction>();
 
   range = range;
 
   possibilityClicked(rowIndex: number, colIndex: number, value: number){
     this.possibilityClick.emit({
-      rowIndex, colIndex, value
+      rowIndex, colIndex, setValue: value
     });
   }
 }

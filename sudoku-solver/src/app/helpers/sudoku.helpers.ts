@@ -17,6 +17,16 @@ export function setCellValue(sudokuState: SudokuStoreState, rowIndex: number, co
   }));
 }
 
+export function removeCellPossibility(sudokuState: SudokuStoreState, rowIndex: number, colIndex: number, value: number): SudokuCellState[][]{
+  return sudokuState.sudokuData.map((row)=>row.map((cell)=>{
+      if(cell.row===rowIndex && cell.col === colIndex){
+        return removePossibility(cell, value);
+      } else{
+        return cell;
+      }
+    }));
+}
+
 function areCellsMutuallyExclusive(sudokuState: SudokuStoreState, row1: number, col1: number, row2: number, col2: number) {
   return row1 === row2 || col1 === col2 || isInSameSquare(sudokuState, row1, col1, row2, col2);
 }

@@ -3,7 +3,7 @@ import { range } from "../helpers/array.helpers";
 import { setCellValue } from "../helpers/sudoku.helpers";
 import { tryToSolve } from "../logic/sudoku-solver";
 import { SudokuCellState } from "../types/sudoku-cell-state";
-import { SudokuPosibillityClickEvent } from "../types/sudoku-possibility-click-event";
+import { SudokuChangeAction } from "../types/sudoku-change-action";
 import { SudokuStoreState } from "./sudoku-store.state";
 
 export class SudokuStore{
@@ -13,8 +13,8 @@ export class SudokuStore{
     this.state = {squareWidth,squareHeight, sudokuData: this.initSudokuData(squareWidth*squareHeight)}
   }
 
-  processCellValueClick(event: SudokuPosibillityClickEvent){
-    this.state.sudokuData = setCellValue(this.state, event.rowIndex, event.colIndex, event.value);
+  processCellValueClick(event: SudokuChangeAction){
+    this.state.sudokuData = setCellValue(this.state, event.rowIndex, event.colIndex, event.setValue);
 
     this.state = {...this.state, sudokuData: tryToSolve(this.state)};
   }
