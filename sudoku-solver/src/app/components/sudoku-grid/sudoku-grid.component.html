@@ -1,4 +1,4 @@
-<div class="sus-sudoku-grid__grid" style="--square-width: {{SQUARE_WIDTH}}; --square-height: {{SQUARE_HEIGHT}}" [attr.data-square-width]="SQUARE_WIDTH" [attr.data-square-height]="SQUARE_HEIGHT">
+<div class="sus-sudoku-grid__grid" style="--square-width: {{squareWidth}}; --square-height: {{squareHeight}}" [attr.data-square-width]="squareWidth" [attr.data-square-height]="squareHeight">
   <div class="sus-sudoku-grid__row" *ngFor="let row of sudokuData; let rowIndex = index">
     <div class="sus-sudoku-grid__cell" *ngFor="let cell of row; let colIndex = index">
       <ng-container *ngIf="cell.value">

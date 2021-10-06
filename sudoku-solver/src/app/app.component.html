@@ -1,1 +1,6 @@
-<sus-sudoku-grid></sus-sudoku-grid>
+<sus-sudoku-grid
+[squareWidth]="store.state.squareWidth"
+[squareHeight]="store.state.squareHeight"
+[sudokuData]="store.state.sudokuData"
+(possibilityClick)="store.processCellValueClick($event)">
+</sus-sudoku-grid>
