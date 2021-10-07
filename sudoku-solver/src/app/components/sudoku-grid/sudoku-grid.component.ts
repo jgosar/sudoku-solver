@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, EventEmitter, Input, Output } from '@angular/core';
 import { range } from 'src/app/helpers/array.helpers';
 import { SudokuCellState } from 'src/app/types/sudoku-cell-state';
 import { SudokuChangeAction } from 'src/app/types/sudoku-change-action';
@@ -6,7 +6,8 @@ import { SudokuChangeAction } from 'src/app/types/sudoku-change-action';
 @Component({
   selector: 'sus-sudoku-grid',
   templateUrl: './sudoku-grid.component.html',
-  styleUrls: ['./sudoku-grid.component.less']
+  styleUrls: ['./sudoku-grid.component.less'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class SudokuGridComponent {
   @Input()

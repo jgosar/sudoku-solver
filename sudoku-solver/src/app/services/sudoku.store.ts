@@ -1,7 +1,7 @@
 import { Injectable, Injector } from "@angular/core";
 import { range } from "../helpers/array.helpers";
-import { setCellValue } from "../helpers/sudoku.helpers";
-import { tryToSolve } from "../logic/sudoku-solver";
+import { executeAction, setCellValue } from "../helpers/sudoku.helpers";
+import { tryToSolveAsync } from "../logic/sudoku-solver";
 import { SudokuCellState } from "../types/sudoku-cell-state";
 import { SudokuChangeAction } from "../types/sudoku-change-action";
 import { SudokuStoreState } from "./sudoku-store.state";
@@ -13,10 +13,12 @@ export class SudokuStore{
     this.state = {squareWidth,squareHeight, sudokuData: this.initSudokuData(squareWidth*squareHeight)}
   }
 
-  processCellValueClick(event: SudokuChangeAction){
-    this.state.sudokuData = setCellValue(this.state, event.rowIndex, event.colIndex, event.setValue);
-
-    this.state = {...this.state, sudokuData: tryToSolve(this.state)};
+  processCellValueClick(action: SudokuChangeAction){
+    this.state.sudokuData = executeAction(this.state, action);
+    
+    tryToSolveAsync(this.state).subscribe(actions=>{
+      this.state = actions.reduce((state, action)=>({...state, sudokuData: executeAction(state, action)}), this.state);
+    });
   }
 
   private initSudokuData(dimension: number): SudokuCellState[][]{

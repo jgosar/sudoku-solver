@@ -1,5 +1,6 @@
 import { SudokuStoreState } from "../services/sudoku-store.state";
 import { SudokuCellState } from "../types/sudoku-cell-state";
+import { SudokuChangeAction } from "../types/sudoku-change-action";
 
 export function setCellValue(sudokuState: SudokuStoreState, rowIndex: number, colIndex: number, value: number): SudokuCellState[][]{
   return sudokuState.sudokuData.map((row, rowNum)=>row.map((cell, colNum)=>{
@@ -25,6 +26,14 @@ export function removeCellPossibility(sudokuState: SudokuStoreState, rowIndex: n
         return cell;
       }
     }));
+}
+
+export function executeAction(sudokuState: SudokuStoreState, action: SudokuChangeAction): SudokuCellState[][]{
+  if(action.setValue){
+    return setCellValue(sudokuState, action.rowIndex, action.colIndex, action.setValue);
+  } else{
+    return removeCellPossibility(sudokuState, action.rowIndex, action.colIndex, action.removePossibility);
+  }
 }
 
 function areCellsMutuallyExclusive(sudokuState: SudokuStoreState, row1: number, col1: number, row2: number, col2: number) {
