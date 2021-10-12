@@ -125,6 +125,10 @@
               "devServerTarget": "sudoku-solver:serve:production"
             }
           }
+        },
+        "deploy": {
+          "builder": "angular-cli-ghpages:deploy",
+          "options": {}
         }
       }
     }
